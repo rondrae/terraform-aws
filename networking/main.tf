@@ -1,7 +1,7 @@
 #--- networking/main.tf
 
-data "aws_availability_zone" "available" {
-  
+data "aws_availability_zones" "available" {
+  #name = ["ca-central-1a", "ca-central-1b", "ca-central-1d"]
 }
 
 resource "random_integer" "random" {
@@ -9,6 +9,10 @@ resource "random_integer" "random" {
     max = 100
 }
 
+resource "random_shuffle" "az_list" {
+  input = data.aws_availability_zones.available.names
+  result_count = var.max_subnets
+}
 
 
 resource "aws_vpc" "mtc_vpc" {
@@ -26,8 +30,7 @@ resource "aws_subnet" "mtc_public_subnet" {
   vpc_id = aws_vpc.mtc_vpc.id
   cidr_block = var.public_cidrs[count.index]
   map_public_ip_on_launch = true
-  availability_zone = data.aws_availability_zone.available.name[count.index]
-
+  availability_zone = random_shuffle.az_list.result[count.index]
   tags = {
     Name = "mtc_public_${count.index + 1}"
   }
@@ -38,7 +41,7 @@ resource "aws_subnet" "mtc_private_subnet" {
   vpc_id = aws_vpc.mtc_vpc.id
   cidr_block = var.private_cidrs[count.index]
   map_public_ip_on_launch = false
-  availability_zone = data.aws_availability_zone.available.name[count.index]
+  availability_zone = random_shuffle.az_list.result[count.index]
 
   tags = {
     Name = "mtc_private_${count.index + 1}"
