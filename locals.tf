@@ -22,6 +22,18 @@ locals {
           protocol    = "tcp"
           cidr_blocks = [var.access_ip]
         }
+        https = {
+          from        = 443
+          to          = 443
+          protocol    = "tcp"
+          cidr_blocks = [var.access_ip]
+        }
+        all = {
+          from        = 0
+          to          = 0
+          protocol    = "-1"
+          cidr_blocks = [var.access_ip]
+        }
       }
     }
     rds = {
